@@ -38,16 +38,25 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('Database connection established successfully.');
-    await sequelize.sync({ alter: true });
-    console.log('Database synced');
+    // Only Sync in dev/prod, not in every test run unless handled specifically
+    if (process.env.NODE_ENV !== 'test') {
+      await sequelize.sync({ alter: true });
+      console.log('Database synced');
+    }
   } catch (err) {
-    console.error('Unable to connect to the database:', err.message);
-    console.log('Note: Server will still start, but DB-dependent features will fail.');
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Unable to connect to the database:', err.message);
+      console.log('Note: Server will still start, but DB-dependent features will fail.');
+    }
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
+  if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  }
 };
 
 startServer();
+
+module.exports = app;
